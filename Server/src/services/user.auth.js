@@ -2,7 +2,7 @@ import jsonWebToken from 'jsonwebtoken';
 
 async function generateToken(user) {
     const payload = {
-        id : user._id,
+        id: user._id,
         Username: user.Username,
         email: user.email
     }

@@ -1,26 +1,16 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-// import Home from "./pages/Home";
-// import About from "./pages/About";
-// import Contact from "./pages/Contact";
 import Login from "./feature/auth/page/Login.jsx";
 import Register from "./feature/auth/page/Register.jsx";
 import Proteted from './feature/auth/components/Protectected.jsx'
 import Home from './feature/Interview/pages/Home.jsx'
 import Interview from "./feature/Interview/pages/Interview.jsx";
+import LandingPage from "./feature/landing/LandingPage.jsx";
 
 const router = createBrowserRouter([
-    // {
-    //     path : "/",
-    //     Element : <Home />
-    // },
-    // {
-    //     path : "/about",
-    //     Element : <About />
-    // },
-    // {
-    //     path : "/contact",
-    //     Element : <Contact />
-    // },
+    {
+        path : "/",
+        element : <LandingPage />
+    },
     {
         path : "/login",
         element : <Login />
@@ -30,7 +20,7 @@ const router = createBrowserRouter([
         element : <Register />
     },
     {
-        path : '/',
+        path : '/dashboard',
         element: <Proteted><Home/></Proteted>
     },
     {

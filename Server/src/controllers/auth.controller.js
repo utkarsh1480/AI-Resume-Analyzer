@@ -35,12 +35,18 @@ async function registerUser(req, res) {
         res.cookie('token', token, {
             httpOnly: true,
             sameSite: 'none',
-            secure: process.env.NODE_ENV === 'production',
+            secure: false,
             maxAge: 3600000,
+            path: '/',
         });
         res.status(201).json({
             success: true,
             message: "user registered successfully",
+            user: {
+                id: user._id,
+                Username: user.Username,
+                email: user.email,
+            },
         })
     } catch (error) {
         res.status(500).json({
@@ -92,7 +98,12 @@ async function loginUser(req, res) {
         res.status(200).json({
             success: true,
             message: "user logged in successfully",
-            token
+            token,
+            user: {
+                id: user._id,
+                Username: user.Username,
+                email: user.email,
+            }
         })
     } catch (error) {
         res.status(500).json({
@@ -120,7 +131,11 @@ async function logoutUser(req, res) {
     // Add the token to the blacklist
     await blacklistModel.create({ token });
 
-    res.clearCookie('token', { sameSite: 'none', secure: process.env.NODE_ENV === 'production' });
+    res.clearCookie('token', {
+        sameSite: 'none',
+        secure: false,
+        path: '/',
+    });
     res.status(200).json({
         success: true,
         message: "user logged out successfully"

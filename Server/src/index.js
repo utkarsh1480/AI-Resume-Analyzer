@@ -1,11 +1,11 @@
+import 'dotenv/config';
 import express from 'express';
-import dotenv from 'dotenv'
-import db  from './config/db_connection.js';
+import db from './config/db_connection.js';
 import cookieParser from 'cookie-parser';
 import authrouter from './routes/auth.routes.js';
-dotenv.config()
-import cors from 'cors'
+import cors from 'cors';
 import interviewRouter from './routes/interview.routes.js';
+
 db();
 
 

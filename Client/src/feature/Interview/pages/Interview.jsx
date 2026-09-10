@@ -1,328 +1,445 @@
-import React, { useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useInterviewHook } from "../Hooks/useInterview.js";
-import { useParams } from "react-router-dom";
-import { Circles } from "react-loader-spinner";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/Hooks/Auth.hooks.jsx";
+import {
+  CodeBracketIcon,
+  ChatBubbleLeftRightIcon,
+  MapIcon,
+  DocumentArrowDownIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ArrowLeftIcon,
+  ArrowRightOnRectangleIcon,
+  LightBulbIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
 
+/* ─────────────────────────────────────────
+   Circular progress ring (SVG)
+───────────────────────────────────────── */
+function ProgressRing({ size = 120, stroke = 10, progress = 0 }) {
+  const r = (size - stroke) / 2;
+  const circ = r * 2 * Math.PI;
+  const offset = circ - (Math.min(progress, 100) / 100) * circ;
+  const color =
+    progress >= 70 ? "#10b981" : progress >= 40 ? "#f59e0b" : "#ef4444";
 
-
-function ProgressRing({ size = 120, stroke = 10, progress = 75 }) {
-    const normalizedRadius = (size - stroke) / 2;
-    const circumference = normalizedRadius * 2 * Math.PI;
-    const strokeDashoffset = circumference - (progress / 100) * circumference;
-
-    return (
-        <svg height={size} width={size} className="block">
-            <circle
-                stroke="#1f2937"
-                fill="transparent"
-                strokeWidth={stroke}
-                r={normalizedRadius}
-                cx={size / 2}
-                cy={size / 2}
-            />
-            <circle
-                stroke="#10b981"
-                fill="transparent"
-                strokeWidth={stroke}
-                strokeLinecap="round"
-                strokeDasharray={`${circumference} ${circumference}`}
-                style={{ strokeDashoffset }}
-                r={normalizedRadius}
-                cx={size / 2}
-                cy={size / 2}
-            />
-            <text
-                x="50%"
-                y="50%"
-                dominantBaseline="middle"
-                textAnchor="middle"
-                className="text-white font-semibold"
-                style={{ fontSize: size * 0.22 }}
-            >
-                {progress}%
-            </text>
-        </svg>
-    );
-}
-
-export default function Interview() {
-
-    const { report, getReportById, generateResmue, loading} = useInterviewHook()
-    const {interviewId} = useParams();
-
-    useEffect(() => {
-        if (interviewId) {
-            getReportById(interviewId)
-        }
-    }, [ interviewId ])
-   
-
-    const safeReport = report ?? {
-        technicalQuestions: [],
-        behavioralQuestions: [],
-        skillGaps: [],
-        matchScore: 0,
-        preparationPlan: [],
-    };
-
-    const plan = safeReport.preparationPlan ?? [];
-
-    // open Technical section by default to match desired UI
-    const [activeSection, setActiveSection] = useState("technical");
-    const [expandedTech, setExpandedTech] = useState({});
-    const [expandedBehavioral, setExpandedBehavioral] = useState({});
-    const toggleTech = (key) => {
-        setExpandedTech((prev) => ({ ...prev, [key]: !prev[key] }));
-    };
-
-    const toggleBehavioral = (key) => {
-        setExpandedBehavioral((prev) => ({ ...prev, [key]: !prev[key] }));
-    };
-    
-
-    return (
-        
-        <div className="min-h-screen bg-slate-900 text-slate-200">
-         {loading && (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-      <Circles
-        height="70"
-        width="70"
-        color="#ec4899"
-        visible={true}
+  return (
+    <svg height={size} width={size} className="block -rotate-90">
+      <circle stroke="#e5e7eb" fill="transparent" strokeWidth={stroke} r={r} cx={size / 2} cy={size / 2} />
+      <circle
+        stroke={color}
+        fill="transparent"
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        strokeDasharray={`${circ} ${circ}`}
+        style={{ strokeDashoffset: offset, transition: "stroke-dashoffset 1s ease" }}
+        r={r}
+        cx={size / 2}
+        cy={size / 2}
       />
-    </div>
-)}
-            <div className="max-w-8xl mx-auto px-6 py-8 m">
-                <div className="grid grid-cols-12 gap-6" >
-                    {/* Left sidebar */}
-                    <aside className="col-span-2 bg-slate-800 rounded-md p-4 h-[78vh] border-repo border-slate-700/50 flex flex-col">
-                        <h3 className="text-sm font-semibold mb-4 text-slate-400 tracking-widest">SECTIONS</h3>
-                        <nav className="space-y-3 mt-2">
-                            <button
-                                onClick={() => setActiveSection("technical")}
-                                className={`w-full text-left px-3 py-3 rounded-lg flex items-center gap-3 transition ${activeSection === "technical"
-                                    ? "bg-gradient-to-r from-pink-600 to-pink-700 text-white shadow-lg"
-                                    : "text-slate-300 hover:bg-slate-700/30"
-                                    }`}
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 ${activeSection === "technical" ? "text-pink-100" : "text-slate-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 18l6-6-6-6M8 6l-6 6 6 6" /></svg>
-                                <span className="text-xs font-semibold">Technical Questions</span>
-                                {/* <span className="ml-auto text-xs bg-slate-700/40 px-2 py-1 rounded text-slate-300">{repo.technicalQuestions.length} questions</span> */}
-                            </button>
-
-                            <button
-                                onClick={() => setActiveSection("behavioral")}
-                                className={`w-full text-left px-3 py-3 rounded-lg flex items-center gap-3 transition ${activeSection === "behavioral" ? "bg-gradient-to-r from-pink-600 to-pink-700 text-white shadow-lg"
-                                    : "text-slate-300 hover:bg-slate-700/30"
-                                    }`}
-                            >
-
-                                <svg xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 ${activeSection === "behavioral" ? "text-slate-100" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>
-                                <span>Behavioral Questions</span>
-                            </button>
-
-                            <button
-                                onClick={() => setActiveSection("roadmap")}
-                                className={`w-full text-left px-3 py-3 rounded-lg flex items-center gap-3 transition ${activeSection === "roadmap" ? "bg-gradient-to-r from-pink-600 to-pink-700 text-white shadow-lg"
-                                    : "text-slate-300 hover:bg-slate-700/30"}`}
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 ${activeSection === "roadmap" ? "text-slate-100" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 3 2-7L2 9h7z" /></svg>
-                                <span>Road Map</span>
-                            </button>
-
-
-                       
-
-
-                        </nav>
-
-                        <div className="mt-auto">
-                            <button 
-                                className={`w-full text-left px-3 py-3 rounded-lg flex items-center gap-3 transition bg-gradient-to-r from-pink-600 to-pink-700 text-white shadow-lg text-slate-300 hover:bg-slate-700/30`}
-                           onClick={() => {generateResmue(interviewId)}}
-                           >
-                                <svg xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 ${activeSection === "roadmap" ? "text-slate-100" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 3 2-7L2 9h7z" /></svg>
-                                <span>Generate resume Pdf</span>
-                            </button>
-                        </div>
-
-
-                    </aside>
-
-                    {/* Main content */}
-                    <main className="col-span-7 bg-slate-800 rounded-md p-6 h-[78vh] overflow-auto">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-2xl font-semibold">{activeSection ? activeSection.replace(/\b\w/g, (c) => c.toUpperCase()) : "Welcome"}</h2>
-                            <div className="text-sm text-slate-400">{activeSection === "technical" ? `${safeReport.technicalQuestions.length} questions` : ""}</div>
-                        </div>
-
-                        <div className="space-y-4">
-                            {!activeSection && (
-                                <div className="text-slate-400">Select a section from the left to view its content.</div>
-                            )}
-
-                            {activeSection === "technical" && (
-                                <>
-                                    {safeReport.technicalQuestions.map((q, idx) => (
-                                        <div key={q._id || idx} className="rounded-md bg-slate-700/20 border border-slate-700/40">
-                                            <div className="px-4 py-3">
-                                                <button
-                                                    onClick={() => toggleTech(q._id || idx)}
-                                                    className="w-full text-left flex items-center gap-4"
-                                                >
-                                                    <div className="w-8 h-8 flex items-center justify-center rounded-md bg-pink-600 text-white text-sm font-semibold">Q{idx + 1}</div>
-                                                    <div className="flex-1">
-                                                        <div className="text-sm font-medium text-slate-100">{q.questions}</div>
-                                                    </div>
-                                                    <div className="text-slate-400">{expandedTech[q._id || idx] ? (
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" /></svg>
-                                                    ) : (
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M14.77 12.79a.75.75 0 01-1.06-.02L10 9.06l-3.71 3.71a.75.75 0 11-1.06-1.06l4.24-4.24a.75.75 0 011.06 0l4.24 4.24c.3.3.3.78.01 1.06z" clipRule="evenodd" /></svg>
-                                                    )}</div>
-                                                </button>
-                                            </div>
-
-                                            {expandedTech[q._id || idx] && (
-                                                <div className="px-4 pb-4">
-                                                    <div className="bg-slate-800 rounded-md p-4 border border-slate-700/50">
-                                                        <div className="mb-3">
-                                                            <span className="inline-block text-xs font-semibold bg-violet-700 text-violet-100 px-2 py-1 rounded">INTENTION</span>
-                                                            <div className="mt-2 text-sm text-slate-300">{q.intention}</div>
-                                                        </div>
-
-                                                        <div className="mt-3">
-                                                            <span className="inline-block text-xs font-semibold bg-emerald-700 text-emerald-100 px-2 py-1 rounded">MODEL ANSWER</span>
-                                                            <div className="mt-2 text-sm text-slate-200 bg-slate-900/60 p-3 rounded mt-2">{q.answer}</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </>
-                            )}
-
-                            {activeSection === "behavioral" && (
-                                <>
-                                    {safeReport.behavioralQuestions.map((b, i) => (
-                                        <div key={b._id || i} className="rounded-md bg-slate-700/20 border border-slate-700/40">
-                                            <div className="px-4 py-3">
-                                                <button
-                                                    onClick={() => toggleBehavioral(b._id || i)}
-                                                    className="w-full text-left flex items-center gap-4"
-                                                >
-                                                    <div className="w-8 h-8 flex items-center justify-center rounded-md bg-indigo-600 text-white text-sm font-semibold">B{i + 1}</div>
-                                                    <div className="flex-1">
-                                                        <div className="text-sm font-medium text-slate-100">{b.questions}</div>
-                                                    </div>
-                                                    <div className="text-slate-400">{expandedBehavioral[b._id || i] ? (
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" /></svg>
-                                                    ) : (
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M14.77 12.79a.75.75 0 01-1.06-.02L10 9.06l-3.71 3.71a.75.75 0 11-1.06-1.06l4.24-4.24a.75.75 0 011.06 0l4.24 4.24c.3.3.3.78.01 1.06z" clipRule="evenodd" /></svg>
-                                                    )}</div>
-                                                </button>
-                                            </div>
-
-                                            {expandedBehavioral[b._id || i] && (
-                                                <div className="px-4 pb-4">
-                                                    <div className="bg-slate-800 rounded-md p-4 border border-slate-700/50">
-                                                        <div className="mb-3">
-                                                            <span className="inline-block text-xs font-semibold bg-violet-700 text-violet-100 px-2 py-1 rounded">INTENTION</span>
-                                                            <div className="mt-2 text-sm text-slate-300">{b.intention}</div>
-                                                        </div>
-
-                                                        <div className="mt-3">
-                                                            <span className="inline-block text-xs font-semibold bg-emerald-700 text-emerald-100 px-2 py-1 rounded">MODEL ANSWER</span>
-                                                            <div className="mt-2 text-sm text-slate-200 bg-slate-900/60 p-3 rounded mt-2">{b.answer}</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </>
-                            )}
-
-                            {activeSection === "roadmap" && (
-                                <div className="mt-2">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-xl font-semibold">Preparation Road Map</h3>
-                                        <span className="text-sm bg-slate-700/30 px-3 py-1 rounded-full text-slate-300">7-day plan</span>
-                                    </div>
-
-                                    <div className="relative">
-                                        {/* vertical line */}
-                                        <div className="absolute left-6 top-0 bottom-0 w-px bg-pink-600/50 ml-0"></div>
-
-                                        <div className="space-y-8 pl-12">
-                                            {plan.map((p, i) => (
-                                                <div key={p.day} className="flex items-start gap-4">
-                                                    <div className="flex flex-col items-center">
-                                                        <div className="w-4 h-4 rounded-full bg-pink-600 ring-2 ring-slate-900"></div>
-                                                        {i !== plan.length - 1 && <div className="flex-1 w-px bg-pink-600/50 mt-1"></div>}
-
-
-                                                    </div>
-
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="text-sm font-semibold text-pink-400">{p.day}</div>
-                                                            <div className="text-lg font-semibold">{p.focus}</div>
-                                                        </div>
-                                                        <ul className="list-disc list-inside text-sm text-slate-300 mt-2 space-y-1">
-                                                            {p.tasks.map((b, j) => (
-                                                                <li key={j}>{b}</li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </main>
-
-                    {/* Right panel */}
-                    <aside className="col-span-3 bg-slate-800 rounded-md p-6 h-[78vh] flex flex-col justify-between">
-                        <div>
-                            <div className="flex items-center justify-center">
-                                <div className="w-36 h-36 bg-slate-700 rounded-full flex items-center justify-center">
-                                    <ProgressRing size={140} stroke={12} progress={safeReport.matchScore} />
-                                </div>
-                            </div>
-
-                            <h4 className="mt-6 text-lg font-semibold">Match Score</h4>
-                            <p className="text-sm text-slate-400">Strong match for this role</p>
-
-                            <div className="mt-6">
-                                <h5 className="font-semibold mb-2">Skill Gaps</h5>
-                                <div className="space-y-3">
-                                    {safeReport.skillGaps.map((g, i) => {
-                                        const color = g.severity === "high" ? "bg-rose-700 text-white" : g.severity === "medium" ? "bg-amber-700 text-slate-900" : "bg-emerald-800 text-white";
-                                        return (
-                                            <div key={i} className={`flex items-center gap-3 px-3 py-2 rounded ${color}`}>
-                                                <div className={`w-2 h-6 rounded-full ${g.severity === "high" ? "bg-rose-400" : g.severity === "medium" ? "bg-amber-300" : "bg-emerald-400"}`}></div>
-                                                <div className="text-sm">{g.skill}</div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-4">
-                            <div className="h-36 bg-slate-700 rounded-md overflow-hidden">
-                                <div className="w-full h-full flex items-center justify-center text-slate-400">Video / Interview preview</div>
-                            </div>
-                        </div>
-                    </aside>
-                </div>
-            </div>
-        </div>
-    );
+      <text
+        x="50%"
+        y="50%"
+        dominantBaseline="middle"
+        textAnchor="middle"
+        className="rotate-90"
+        style={{
+          fontSize: size * 0.2,
+          fontWeight: 800,
+          fill: "#111827",
+          transform: `rotate(90deg)`,
+          transformOrigin: "center",
+        }}
+      >
+        {progress}%
+      </text>
+    </svg>
+  );
 }
 
+/* ─────────────────────────────────────────
+   Accordion question card
+───────────────────────────────────────── */
+function QuestionCard({ index, question, answer, intention, prefix = "Q", accentClass = "bg-blue-600" }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden transition-all duration-200 ${open ? "shadow-md" : "hover:shadow-sm"}`}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full text-left px-5 py-4 flex items-start gap-4 group"
+      >
+        <div className={`w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg ${accentClass} text-white text-xs font-bold`}>
+          {prefix}{index + 1}
+        </div>
+        <div className="flex-1 text-sm font-medium text-gray-800 leading-relaxed pt-0.5">{question}</div>
+        <div className="text-gray-400 group-hover:text-gray-600 transition-colors mt-0.5 flex-shrink-0">
+          {open ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
+        </div>
+      </button>
 
+      {open && (
+        <div className="px-5 pb-5 pt-1 border-t border-gray-50 space-y-4">
+          {intention && (
+            <div className="rounded-xl bg-violet-50 border border-violet-100 p-4">
+              <span className="inline-block text-[10px] font-bold bg-violet-100 text-violet-700 px-2.5 py-1 rounded-full uppercase tracking-wider mb-2">
+                💡 Why they ask this
+              </span>
+              <p className="text-sm text-violet-800 leading-relaxed">{intention}</p>
+            </div>
+          )}
+          {answer && (
+            <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-4">
+              <span className="inline-block text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full uppercase tracking-wider mb-2">
+                ✅ Model Answer
+              </span>
+              <p className="text-sm text-emerald-900 leading-relaxed">{answer}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Main component
+───────────────────────────────────────── */
+export default function Interview() {
+  const { report, getReportById, generateResmue, loading } = useInterviewHook();
+  const { interviewId } = useParams();
+  const { user, handlelogout } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (interviewId) getReportById(interviewId);
+  }, [interviewId]);
+
+  const safeReport = report ?? {
+    technicalQuestions: [],
+    behavioralQuestions: [],
+    skillGaps: [],
+    matchScore: 0,
+    preparationPlan: [],
+    title: "",
+  };
+
+  const plan = safeReport.preparationPlan ?? [];
+
+  const [activeSection, setActiveSection] = useState("technical");
+
+  const scoreLabel =
+    safeReport.matchScore >= 70
+      ? "Strong match"
+      : safeReport.matchScore >= 40
+      ? "Moderate match"
+      : "Needs improvement";
+
+  const scoreColor =
+    safeReport.matchScore >= 70
+      ? "text-emerald-600"
+      : safeReport.matchScore >= 40
+      ? "text-yellow-600"
+      : "text-red-500";
+
+  const NAV_ITEMS = [
+    { id: "technical", label: "Technical Questions", icon: CodeBracketIcon, count: safeReport.technicalQuestions.length },
+    { id: "behavioral", label: "Behavioral Questions", icon: ChatBubbleLeftRightIcon, count: safeReport.behavioralQuestions.length },
+    { id: "roadmap", label: "Road Map", icon: MapIcon, count: plan.length },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30 font-sans">
+
+      {/* ── Loading overlay ── */}
+      {loading && (
+        <div className="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-700 font-semibold">Loading your strategy…</p>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════
+          NAVBAR
+      ══════════════════════════════════════ */}
+      <nav className="bg-white/90 backdrop-blur border-b border-gray-100 sticky top-0 z-40">
+        <div className="max-w-screen-2xl mx-auto px-6 py-3.5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard" className="flex items-center gap-1.5 text-gray-500 hover:text-blue-600 text-sm font-medium transition-colors">
+              <ArrowLeftIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </Link>
+            <div className="h-5 w-px bg-gray-200" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                <span className="text-white font-black text-sm">R</span>
+              </div>
+              <span className="text-gray-900 font-extrabold text-base tracking-tight hidden sm:inline">ResumeAI</span>
+            </div>
+          </div>
+
+          {safeReport.title && (
+            <p className="text-gray-500 text-sm font-medium truncate max-w-xs hidden md:block">{safeReport.title}</p>
+          )}
+
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">
+                {user?.Username?.[0]?.toUpperCase() ?? "U"}
+              </div>
+              <span className="text-gray-700 font-medium text-sm">{user?.Username}</span>
+            </div>
+            <button
+              onClick={async () => { await handlelogout(); navigate("/login"); }}
+              className="flex items-center gap-1.5 text-gray-500 hover:text-red-500 text-sm font-medium border border-gray-200 hover:border-red-200 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <ArrowRightOnRectangleIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* ══════════════════════════════════════
+          3-COLUMN LAYOUT
+      ══════════════════════════════════════ */}
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-12 gap-5">
+
+        {/* ── LEFT SIDEBAR ── */}
+        <aside className="col-span-12 md:col-span-3 lg:col-span-2">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sticky top-[70px]">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-3">Sections</p>
+
+            <nav className="space-y-1">
+              {NAV_ITEMS.map(({ id, label, icon: Icon, count }) => (
+                <button
+                  key={id}
+                  onClick={() => setActiveSection(id)}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all duration-200 ${
+                    activeSection === id
+                      ? "bg-blue-600 text-white shadow-sm shadow-blue-200"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-xs font-semibold flex-1">{label}</span>
+                  {count > 0 && (
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeSection === id ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
+
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <button
+                onClick={() => generateResmue(interviewId)}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold transition-all duration-200 shadow-sm shadow-blue-200"
+              >
+                <DocumentArrowDownIcon className="w-4 h-4 flex-shrink-0" />
+                Generate Resume PDF
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* ── MAIN CONTENT ── */}
+        <main className="col-span-12 md:col-span-9 lg:col-span-7">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm min-h-[70vh]">
+
+            {/* section header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {activeSection === "technical" && <CodeBracketIcon className="w-5 h-5 text-blue-600" />}
+                {activeSection === "behavioral" && <ChatBubbleLeftRightIcon className="w-5 h-5 text-indigo-600" />}
+                {activeSection === "roadmap" && <MapIcon className="w-5 h-5 text-violet-600" />}
+                <h2 className="text-lg font-bold text-gray-900 capitalize">
+                  {activeSection === "roadmap" ? "Preparation Road Map" : `${activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} Questions`}
+                </h2>
+              </div>
+              <span className="text-xs text-gray-400 font-medium bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-full">
+                {activeSection === "technical" && `${safeReport.technicalQuestions.length} questions`}
+                {activeSection === "behavioral" && `${safeReport.behavioralQuestions.length} questions`}
+                {activeSection === "roadmap" && `${plan.length}-step plan`}
+              </span>
+            </div>
+
+            <div className="p-6 space-y-3">
+
+              {/* TECHNICAL */}
+              {activeSection === "technical" && (
+                <>
+                  {safeReport.technicalQuestions.length === 0 ? (
+                    <EmptyState message="No technical questions generated." />
+                  ) : (
+                    safeReport.technicalQuestions.map((q, idx) => (
+                      <QuestionCard
+                        key={q._id || idx}
+                        index={idx}
+                        question={q.questions}
+                        answer={q.answer}
+                        intention={q.intention}
+                        prefix="Q"
+                        accentClass="bg-blue-600"
+                      />
+                    ))
+                  )}
+                </>
+              )}
+
+              {/* BEHAVIORAL */}
+              {activeSection === "behavioral" && (
+                <>
+                  {safeReport.behavioralQuestions.length === 0 ? (
+                    <EmptyState message="No behavioral questions generated." />
+                  ) : (
+                    safeReport.behavioralQuestions.map((b, idx) => (
+                      <QuestionCard
+                        key={b._id || idx}
+                        index={idx}
+                        question={b.questions}
+                        answer={b.answer}
+                        intention={b.intention}
+                        prefix="B"
+                        accentClass="bg-indigo-600"
+                      />
+                    ))
+                  )}
+                </>
+              )}
+
+              {/* ROAD MAP */}
+              {activeSection === "roadmap" && (
+                <>
+                  {plan.length === 0 ? (
+                    <EmptyState message="No preparation plan generated." />
+                  ) : (
+                    <div className="relative pl-8">
+                      {/* vertical line */}
+                      <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-blue-100 rounded-full" />
+
+                      <div className="space-y-6">
+                        {plan.map((p, i) => (
+                          <div key={p.day || i} className="relative">
+                            {/* dot */}
+                            <div className="absolute -left-[22px] top-1.5 w-3 h-3 rounded-full bg-blue-600 border-2 border-white ring-2 ring-blue-100" />
+
+                            <div className="bg-gray-50 hover:bg-blue-50/50 border border-gray-100 hover:border-blue-100 rounded-xl p-4 transition-all duration-200">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full">
+                                  {p.day}
+                                </span>
+                                <h3 className="text-sm font-bold text-gray-900">{p.focus}</h3>
+                              </div>
+                              <ul className="space-y-1.5">
+                                {p.tasks?.map((task, j) => (
+                                  <li key={j} className="flex items-start gap-2 text-sm text-gray-600">
+                                    <CheckCircleIcon className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                    {task}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+            </div>
+          </div>
+        </main>
+
+        {/* ── RIGHT SIDEBAR ── */}
+        <aside className="col-span-12 lg:col-span-3">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sticky top-[70px] space-y-6">
+
+            {/* Match Score */}
+            <div className="text-center">
+              <div className="flex justify-center mb-3">
+                <ProgressRing size={120} stroke={10} progress={safeReport.matchScore} />
+              </div>
+              <h4 className="text-gray-900 font-bold text-base">Match Score</h4>
+              <p className={`text-sm font-semibold ${scoreColor} mt-0.5`}>{scoreLabel}</p>
+              <p className="text-gray-400 text-xs mt-1">Based on your resume vs. job description</p>
+            </div>
+
+            <div className="h-px bg-gray-100" />
+
+            {/* Skill Gaps */}
+            <div>
+              <h5 className="text-gray-900 font-bold text-sm mb-3 flex items-center gap-2">
+                <LightBulbIcon className="w-4 h-4 text-yellow-500" />
+                Skill Gaps
+              </h5>
+
+              {safeReport.skillGaps.length === 0 ? (
+                <p className="text-gray-400 text-xs">No skill gaps identified 🎉</p>
+              ) : (
+                <div className="space-y-2">
+                  {safeReport.skillGaps.map((g, i) => {
+                    const severity = g.severity?.toLowerCase();
+                    const styles =
+                      severity === "high"
+                        ? { badge: "bg-red-50 border-red-200 text-red-700", dot: "bg-red-500", label: "High" }
+                        : severity === "medium"
+                        ? { badge: "bg-orange-50 border-orange-200 text-orange-700", dot: "bg-orange-500", label: "Medium" }
+                        : { badge: "bg-emerald-50 border-emerald-200 text-emerald-700", dot: "bg-emerald-500", label: "Low" };
+
+                    return (
+                      <div key={i} className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border ${styles.badge}`}>
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${styles.dot}`} />
+                        <span className="text-xs font-medium flex-1">{g.skill}</span>
+                        <span className="text-[10px] font-bold opacity-60">{styles.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="h-px bg-gray-100" />
+
+            {/* Video placeholder */}
+            <div>
+              <h5 className="text-gray-900 font-bold text-sm mb-3">Interview Preview</h5>
+              <div className="rounded-xl bg-gray-50 border-2 border-dashed border-gray-200 h-32 flex flex-col items-center justify-center gap-2">
+                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <span className="text-2xl">🎬</span>
+                </div>
+                <p className="text-gray-400 text-xs text-center font-medium">Video preview<br />coming soon</p>
+              </div>
+            </div>
+
+            {/* Quick actions */}
+            <button
+              onClick={() => generateResmue(interviewId)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-colors duration-200 shadow-sm shadow-blue-200"
+            >
+              <DocumentArrowDownIcon className="w-4 h-4" />
+              Download Resume PDF
+            </button>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  );
+}
+
+/* ── Empty state helper ── */
+function EmptyState({ message }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-4">
+        <span className="text-2xl">📋</span>
+      </div>
+      <p className="text-gray-500 font-medium">{message}</p>
+      <p className="text-gray-400 text-sm mt-1">Try generating a new report from the dashboard.</p>
+    </div>
+  );
+}
