@@ -2,6 +2,17 @@ import User from './../Model/user.model.js';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '../services/user.auth.js';
 import blacklistModel from '../Model/blacklist.js';
+const getCookieOptions = () => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    return {
+        httpOnly: true,
+        sameSite: isProduction ? 'none' : 'lax',
+        secure: isProduction,
+        maxAge: 3600000 * 24 * 7,
+        path: '/',
+    };
+};
+
 /**
  * @route Post /ap/auth//register
  * @description register a new user
@@ -32,13 +43,7 @@ async function registerUser(req, res) {
             password: hash
         })
         const token = await generateToken(user);
-        res.cookie('token', token, {
-            httpOnly: true,
-            sameSite: 'none',
-            secure: false,
-            maxAge: 3600000,
-            path: '/',
-        });
+        res.cookie('token', token, getCookieOptions());
         res.status(201).json({
             success: true,
             message: "user registered successfully",
@@ -94,7 +99,7 @@ async function loginUser(req, res) {
                 message: "Token is blacklisted. Please login again."
             });
         }
-        res.cookie('token', token);
+        res.cookie('token', token, getCookieOptions());
         res.status(200).json({
             success: true,
             message: "user logged in successfully",
@@ -131,11 +136,7 @@ async function logoutUser(req, res) {
     // Add the token to the blacklist
     await blacklistModel.create({ token });
 
-    res.clearCookie('token', {
-        sameSite: 'none',
-        secure: false,
-        path: '/',
-    });
+    res.clearCookie('token', getCookieOptions());
     res.status(200).json({
         success: true,
         message: "user logged out successfully"
